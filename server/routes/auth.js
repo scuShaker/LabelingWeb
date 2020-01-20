@@ -96,21 +96,21 @@ function getToken(username) {
 }
 
 router.post('/setState', async(req, res) => {
-    const {username,state} = req.body;
-    if (!config.adminUsers.includes(req.username)){
+    const {username,objectname,state} = req.body;
+    if (!config.adminUsers.includes(username)){
         res.status(412)
         .json({
             error: 'you are not admin'
         });
     }
-    else if(config.adminUsers.includes(username)){
+    else if(config.adminUsers.includes(objectname)){
         res.status(412)
         .json({
             error: 'can not change the state of admin'
         });
     }
     else{
-        User.findOneAndUpdate({username}, {$set:{state}}, function(err, doc){
+        User.findOneAndUpdate({objectname}, {$set:{state}}, function(err, doc){
             if(err){
                 res.status(412)
                     .json({

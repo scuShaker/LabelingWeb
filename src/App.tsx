@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Icon, message, Button} from 'antd';
 import {Annotator} from 'web-labeler-react';
-import {_history, serverUrl, types, fabricTypes} from './config';
+import {_history, serverUrl, types, fabricTypes,LetterToTypes} from './config';
 import {getData, postData} from "./utils";
 import {LogoutButton} from './LogoutButton'
 
@@ -29,6 +29,13 @@ interface BBox{
     annotation: string;   
 }
 
+interface Label{
+    type: string;
+    distance: number;
+    naturalX: number;
+    y: number;
+}
+
 interface AppProps{
     url: string,
     labeledUser: string,
@@ -37,6 +44,10 @@ interface AppProps{
     defaultType: string;
     defaultSceneType: string|undefined;
     returnBack:()=>void;
+    setLabelBack:(label:Label)=>void;
+    priorNaturalX:number;
+    priorY:number;
+    isLabelLeft:boolean;
 }
 
 
@@ -98,8 +109,10 @@ const App:React.FC<AppProps> = function(props:AppProps){
                 <label style={{ margin: '0 8px' }}>之前标记者: {labeledUser}</label>
                 <label style={{ margin: '0 8px' }}>之前标记时间: {labeledDate}</label>
                 <Button type="danger" size="large" style={{left:"40%"}} 
-                onClick={
-                    props.returnBack}
+                onClick={()=>{
+                    if(window.confirm("没有提交确定要离开吗")==false)
+                        return;
+                    props.returnBack()}}
                 >返回上一层</Button>
             </div>
 
@@ -123,7 +136,13 @@ const App:React.FC<AppProps> = function(props:AppProps){
                 style={{
                     margin: '0px auto',
                     borderRadius: 5
-                }} />
+                }} 
+                labelTypes={Object.keys(LetterToTypes)}
+                returnLabel={(label:Label)=>{props.setLabelBack(label)}}
+                isLabelLeft={props.isLabelLeft}
+                priorNaturalX={props.priorNaturalX}
+                priorY={props.priorY}
+                />
         </div>
     );
 };

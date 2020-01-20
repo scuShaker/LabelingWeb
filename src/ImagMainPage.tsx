@@ -9,6 +9,8 @@ import App from './App';
 import {changeUrl} from './Sider';
 import {_history} from "./config";
 import {postData} from "./utils";
+import { number } from 'prop-types';
+import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 
 
 const {Option} = Select;
@@ -37,7 +39,12 @@ interface jsonProps{
     defaultBoxes: Array<BBox>,
     defaultSceneType: string|undefined;
 }
-
+interface Label{
+    type: string;
+    distance: number;
+    naturalX: number;
+    y: number;
+}
 
 
 const rightStart = [0, 42.4, 86.1, 129.6]
@@ -56,16 +63,20 @@ export const ImageMainPage:React.FC = function(){
     const [fileName, setFileName] = useState("");
     const [location, setLocation] = useState(0);
     const [showIndex, setShowIndex] = useState(-1);
-    const [flawType, setFlawType] = useState("稀痕");
-    const [ifMarkLeft, setIfMarkLeft] = useState<boolean>(true);
     const [style_1, setStyle_1] = useState<boolean>(true);
     const [style_2, setStyle_2] = useState<boolean>(true);
     const [style_3, setStyle_3] = useState<boolean>(true);
     const [style_4, setStyle_4] = useState<boolean>(true);
-    const [distToEdge, setDistToEdge] = useState(0);
+    const [isLabelLeft, setIsLabelLeft] = useState<boolean>(true);
+    const [label, setLabel] = useState<Label>({    
+        type: "A",
+        distance: 0,
+        naturalX: 0,
+        y: 0});
    // const [loadState, setLoadState] = useState<boolean>(false);
     // @ts-ignore
     const [showBBoxes, setShowBBoxes] = useState<[LabelRow]>([]);
+    const [priorX, setPriorX] = useState([]);
     // @ts-ignore
     const [predictList, setPredictList] = useState<[string]>([]);
     // @ts-ignore
@@ -170,7 +181,7 @@ export const ImageMainPage:React.FC = function(){
             else{
                 return res.json();
             }
-        }).then((data:Array<jsonProps>)=>{
+        }).then(async (data:Array<jsonProps>)=>{
             //message.success(JSON.stringify(data));
             if(data === undefined)
             {
@@ -186,7 +197,7 @@ export const ImageMainPage:React.FC = function(){
                         _defaultSceneType = undefined;
                     }
                     for (let box of _defaultBoxes) {
-                        if (types.indexOf(box.annotation) === -1) {
+                        if (types.indexOf(box.annotation) === -1 && box.annotation!='label') {
                             box.annotation = '未知';
                         }
                     }
@@ -277,6 +288,7 @@ export const ImageMainPage:React.FC = function(){
 
     const onClickShow = (index:number)=>{
         setShowIndex(index);
+        //setPriorX(0.0);
     }
 
     const onClickLocation = (value: number)=>{
@@ -297,16 +309,28 @@ export const ImageMainPage:React.FC = function(){
 
     const onClickIndex = (value: number)=>{
         setImageIndex(value);
+
+    }
+
+
+
+    const returnBack = async ()=>{
+        setShowIndex(-1);
     }
 
     const app = (showIndex!==-1)?(
         <App url={jsonDataList[showIndex].url}
         labeledUser={jsonDataList[showIndex].labeledUser}
         labeledDate={jsonDataList[showIndex].labeledDate}
-        defaultType={flawType}
+        defaultType={LetterToTypes[label.type]}
         defaultBoxes={jsonDataList[showIndex].defaultBoxes}
         defaultSceneType={jsonDataList[showIndex].defaultSceneType}
-        returnBack = {()=>{setShowIndex(-1)}}
+        returnBack = {returnBack}
+        setLabelBack = {(label:Label)=>{setLabel(label)}}
+        priorNaturalX = {showIndex>=4&&showIndex<=7?priorX[7-showIndex]:0}
+       //priorNaturalX={priorX[0]}
+        priorY = {label.y}
+        isLabelLeft = {isLabelLeft}
         />) : undefined;
     
 
@@ -339,26 +363,46 @@ export const ImageMainPage:React.FC = function(){
 
     const onSet = function (){
         styleInit();
-        if(ifMarkLeft == true){
-            if(distToEdge>leftStart[0] && distToEdge<leftEnd[0])
+        let naturalX = label.naturalX
+        let XList = [0,0,0,0]
+        if(isLabelLeft){
+            if(naturalX>leftStart[0] && naturalX<leftEnd[0]){
                 setStyle_1(false);
-            if(distToEdge>leftStart[1] && distToEdge<leftEnd[1])
+                XList[0]=naturalX-leftStart[0];
+            }
+            if(naturalX>leftStart[1] && naturalX<leftEnd[1]){
                 setStyle_2(false);
-            if(distToEdge>leftStart[2] && distToEdge<leftEnd[2])
+                XList[1] = naturalX-leftStart[1];
+            }
+            if(naturalX>leftStart[2] && naturalX<leftEnd[2]){
                 setStyle_3(false);
-            if(distToEdge>leftStart[3] && distToEdge<leftEnd[3])
+                XList[2]=naturalX-leftStart[2];
+            }
+            if(naturalX>leftStart[3] && naturalX<leftEnd[3]){
                 setStyle_4(false);
+                XList[3]=naturalX-leftStart[3];
+            }
         }
         else{
-            if(distToEdge>rightStart[0] && distToEdge<rightEnd[0])
+            if(naturalX>rightStart[0] && naturalX<rightEnd[0]){
                 setStyle_1(false);
-            if(distToEdge>rightStart[1] && distToEdge<rightEnd[1])
+                XList[0]=rightEnd[0] - naturalX;
+            }
+            if(naturalX>rightStart[1] && naturalX<rightEnd[1]){
                 setStyle_2(false);
-            if(distToEdge>rightStart[2] && distToEdge<rightEnd[2])
+                XList[1]=rightEnd[1] - naturalX;
+            }
+            if(naturalX>rightStart[2] && naturalX<rightEnd[2]){
                 setStyle_3(false);
-            if(distToEdge>rightStart[3] && distToEdge<rightEnd[3])
-                setStyle_4(false);           
+                XList[2]=rightEnd[2] - naturalX;
+            }
+            if(naturalX>rightStart[3] && naturalX<rightEnd[3]){
+                setStyle_4(false);
+                XList[3]=rightEnd[3] - naturalX;
+            }     
         }
+            // @ts-ignore
+        setPriorX(XList)
     }
 
     const style_normal = {boxShadow: '3px 3px 10px 10px rgba(0, 0, 0, 0.2)'};
@@ -369,9 +413,6 @@ export const ImageMainPage:React.FC = function(){
         <div>
             <div>
                 <Row>
-                    <Col span={6}>
-                        {"瑕疵类型设定为： " + flawType}
-                    </Col>
                     <Col span={4}>
                         {"文件名： " + fileName}
                     </Col>
@@ -383,37 +424,19 @@ export const ImageMainPage:React.FC = function(){
                     </Col>
                 </Row>
                 <Row style={{margin:10}}>
-                    <Col  span={5}>
-                        <Select 
-                        defaultValue = "A"
-                        style={{ width: 120 }} onChange={(value:string)=>{
-                            setFlawType(LetterToTypes[value]);
-                        }}>
-                        {Object.keys(LetterToTypes).map((type:string)=>
-                            <Option value={type}>{type}</Option>
-                        )}
-                        </Select>
+                    <Col  span={4}>
+                        {"瑕疵类型： " + LetterToTypes[label.type]}
                     </Col>
-                    <Col span={5}>
-                        <Select 
-                            defaultValue = "左"
-                            style={{ width: 120 }} onChange={(value:string)=>{
-                                if(value === "左")
-                                    setIfMarkLeft(true);
-                                else{
-                                    setIfMarkLeft(false);
-                                }
-                            }}>
-                            <Option value={"左"}>左</Option>
-                            <Option value={"右"}>右</Option>
-                        </Select>
+                    <Col span={4}>
+                        {"贴标所在边: " + isLabelLeft?"左":"右"}
                     </Col>
-                    <Col span={5}>
-                        <InputNumber max={180} min={0} onChange={(value)=>{
-                            if(value!== undefined)
-                                setDistToEdge(value)}}/>
+                    <Col span={4}>
+                        {"瑕疵距离: " + label.distance}
                     </Col>
-                    <Col span={5}>
+                    <Col span={4}>
+                        贴标所在高度： {label.y}
+                    </Col>
+                    <Col span={4}>
                     <Button type="primary" disabled={loadState} onClick={onSet}>设置</Button>
                     </Col>
                 </ Row>
@@ -486,7 +509,8 @@ export const ImageMainPage:React.FC = function(){
                         url = {jsonDataList[4].url}
                         bboxes = {jsonDataList[4].defaultBoxes}
                         size = {150}
-                        onClick = {()=>{onClickShow(4)}}
+                        onClick = {()=>{onClickShow(4);
+                        setIsLabelLeft(true)}}
                         />
                     </Col>
                     <Col span={5}>
@@ -513,7 +537,8 @@ export const ImageMainPage:React.FC = function(){
                         url = {jsonDataList[7].url}
                         bboxes = {jsonDataList[7].defaultBoxes}
                         size = {150}
-                        onClick = {()=>{onClickShow(7)}}
+                        onClick = {()=>{onClickShow(7)
+                        setIsLabelLeft(false)}}
                         />
                     </Col>
                 </Row> 

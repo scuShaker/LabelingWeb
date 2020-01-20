@@ -103,7 +103,16 @@ router.get('/getJsonData/:fileName/:imageIndex', withAuth, async function(req, r
           labeledUser = data.labeledUser;
         if(data.labeledDate!== undefined)
           labeledDate = data.labeledDate;
-    
+        
+        if(data.version!=2.0 || data.version == undefined){
+          return{
+            url: urlItem,
+            labeledUser: "",
+            labeledDate: "",
+            defaultBoxes: [],
+            defaultSceneType: undefined,
+          }
+        }
         return{
           url: urlItem,
           labeledUser,
@@ -162,6 +171,7 @@ router.post('/postLabeledData', withAuth, async function(req, res, next) {
   const date = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
   labeledData['labeledDate'] = date;
   labeledData['labeledUser'] = req.username;
+  labeledData['version'] = 2.0;
   await fs.writeFile(jsonPath, JSON.stringify(labeledData, undefined, 2), function(err){
       if (err) throw err;
   });

@@ -104,7 +104,7 @@ export const UserMainPage: React.FC = function() {
                 <Switch defaultChecked = {record.state} onChange={(checked)=>{
                     let newState = checked;
                     postData(serverUrl + 'authenticate/setState',
-                    {username: record.username, state:newState}).then(res=>{
+                    {username:localStorage.getItem('username'), objectname: record.username, state:newState}).then(res=>{
                         if(res.status==412){
                             message.error("你不是管理员用户或者你不能修改管理员的登录权限")
                         }
@@ -149,6 +149,7 @@ export const UserMainPage: React.FC = function() {
                        transform: 'translate(-50%, -50%)',
                        zIndex: 20
                    }}
+                   labelTypes={[]}
         />) : undefined;
 
     return (

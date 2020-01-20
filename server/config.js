@@ -14,7 +14,7 @@ config.unlabeledImageDir = `./${config.staticDir}/${config.unlabeledImageDirSuff
 config.allLabeledIamgePaths = [config.unlabeledImageDir, config.targetDir];
 config.ConfigFileName = 'config.json'
 
-config.maxImageSizeInByte = 1024 * 800;
+config.maxImageSizeInByte = 4096 * 2000;
 config.adminUsers = ['admin','小马哥116'];
 
 module.exports = config;
