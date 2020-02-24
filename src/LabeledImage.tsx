@@ -11,6 +11,15 @@ const MainPage = styled.div`
     z-index: 10;
 `;
 
+interface D2 {
+    x: number,
+    y: number
+}
+
+interface PBox{
+    points:Array<D2>,
+    annotation: string,
+}
 
 interface BBox {
     x: number;
@@ -23,7 +32,7 @@ interface BBox {
 
 interface Props {
     url: string;
-    bboxes: Array<BBox>;
+    bboxes: Array<BBox|PBox>;
     size: number;
     style?: object;
     onClick: (url:string)=>void;

@@ -13,7 +13,15 @@ interface LabeledNumRow {
     username: String;
     labeledNum: number;
 }
+interface D2 {
+    x: number,
+    y: number
+}
 
+interface PBox{
+    points:Array<D2>,
+    annotation: string,
+}
 interface BBox {
     x: number;
     y: number;
@@ -30,7 +38,7 @@ interface RawLabelRow {
 
 interface LabelRow {
     url: string;
-    bboxes: Array<BBox>;
+    bboxes: Array<BBox| PBox>;
     labelDate: string;
 }
 

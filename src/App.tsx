@@ -21,6 +21,16 @@ const uploadData = async (labeledData: any) => {
     return labeledData;
 }
 
+interface D2 {
+    x: number,
+    y: number
+}
+
+interface PBox{
+    points:Array<D2>,
+    annotation: string,
+}
+
 interface BBox{
     x: number;
     y: number;
@@ -40,7 +50,7 @@ interface AppProps{
     url: string,
     labeledUser: string,
     labeledDate: string,
-    defaultBoxes: Array<BBox>,
+    defaultBoxes: Array<BBox|PBox>,
     defaultType: string;
     defaultSceneType: string|undefined;
     returnBack:()=>void;
@@ -56,7 +66,7 @@ const App:React.FC<AppProps> = function(props:AppProps){
     const [labeledUser, setLabeledUser] = useState('asd');
     const [labeledDate, setLabeledDate] = useState('');
     // @ts-ignore
-    const [defaultBoxes, setDefaultBoxes] = useState<[BBox]>([]);
+    const [defaultBoxes, setDefaultBoxes] = useState<[BBox|PBox]>([]);
     const [defaultSceneType, setDefaultSceneType] = useState<string|undefined>(undefined);
     const [[width, height], setWidthHeight] = useState([600, 600]);
     const mainRef = useRef(null);

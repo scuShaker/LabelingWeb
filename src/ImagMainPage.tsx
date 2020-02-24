@@ -15,6 +15,15 @@ import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 
 const {Option} = Select;
 
+interface D2 {
+    x: number,
+    y: number
+}
+
+interface PBox{
+    points:Array<D2>,
+    annotation: string,
+}
 
 interface BBox{
     x: number;
@@ -28,15 +37,12 @@ interface FileId{
     fileId:number
 }
  
-interface LabelRow{
-    url: string,
-    bbox : BBox,
-}
+
 interface jsonProps{
     url: string,
     labeledUser: string,
     labeledDate: string,
-    defaultBoxes: Array<BBox>,
+    defaultBoxes: Array<BBox | PBox>,
     defaultSceneType: string|undefined;
 }
 interface Label{
@@ -74,8 +80,6 @@ export const ImageMainPage:React.FC = function(){
         naturalX: 0,
         y: 0});
    // const [loadState, setLoadState] = useState<boolean>(false);
-    // @ts-ignore
-    const [showBBoxes, setShowBBoxes] = useState<[LabelRow]>([]);
     const [priorX, setPriorX] = useState([]);
     // @ts-ignore
     const [predictList, setPredictList] = useState<[string]>([]);
@@ -315,6 +319,7 @@ export const ImageMainPage:React.FC = function(){
 
 
     const returnBack = async ()=>{
+        // TODO
         setShowIndex(-1);
     }
 

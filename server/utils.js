@@ -24,10 +24,17 @@ async function resizeBBoxesOnScaledImage(targetPath, labeledData) {
         const wScale = dimensions.width / labeledData.width;
         const hScale = dimensions.height / labeledData.height;
         for (let i = 0; i < labeledData.flaws.length; i++) {
-            labeledData.flaws[i].x *= wScale;
-            labeledData.flaws[i].y *= hScale;
-            labeledData.flaws[i].w *= wScale;
-            labeledData.flaws[i].h *= hScale;
+            if(labeledData.flaws[i].hasOwnProperty("points")){
+                for(let j = 0;j < labeledData.flaws[i].points.length;j++){
+                    labeledData.flaws[i].points[j].x *= wScale;
+                    labeledData.flaws[i].points[j].y *= wScale;
+                }
+            }else{
+                labeledData.flaws[i].x *= wScale;
+                labeledData.flaws[i].y *= hScale;
+                labeledData.flaws[i].w *= wScale;
+                labeledData.flaws[i].h *= hScale;
+            }
         }
 
         labeledData.width = dimensions.width;
@@ -63,11 +70,19 @@ exports.getImageNumInDir = getImageNumInDir;
 
 
 function scaleBBoxes(defaultBoxes, scale) {
-    for (let i = 0; i < defaultBoxes.length; i++) {
-        defaultBoxes[i].x *= scale;
-        defaultBoxes[i].y *= scale;
-        defaultBoxes[i].w *= scale;
-        defaultBoxes[i].h *= scale;
+    for (let i = 0; i < defaultBoxes.flaws.length; i++) {
+        if(defaultBoxes.flaws[i].hasOwnProperty("points")){
+            for(let j = 0;j < defaultBoxes.flaws[i].points.length;j++){
+                defaultBoxes.flaws[i].points[j].x *= wScale;
+                defaultBoxes.flaws[i].points[j].y *= wScale;
+            }
+        }else{
+            defaultBoxes.flaws[i].x *= wScale;
+            defaultBoxes.flaws[i].y *= hScale;
+            defaultBoxes.flaws[i].w *= wScale;
+            defaultBoxes.flaws[i].h *= hScale;
+        }
+
     }
 }
 exports.scaleBBoxes = scaleBBoxes;
@@ -112,14 +127,14 @@ function checkLabeledDataFormat(labeledData) {
             throw new TypeError(`Labeled data does not has "${col}" field; ${JSON.stringify(labeledData)}`);
         }
     }
-    const flawFieldsMustHave = ['x', 'y', 'w', 'h', 'annotation'];
-    for (let row of labeledData['flaws']) {
-        for (let field of flawFieldsMustHave) {
-            if (!row.hasOwnProperty(field)) {
-                throw new TypeError(`LabeledData.flaws does not has "${field}" field`);
-            }
-        }
-    }
+    // const flawFieldsMustHave = ['x', 'y', 'w', 'h', 'annotation'];
+    // for (let row of labeledData['flaws']) {
+    //     for (let field of flawFieldsMustHave) {
+    //         if (!row.hasOwnProperty(field)) {
+    //             throw new TypeError(`LabeledData.flaws does not has "${field}" field`);
+    //         }
+    //     }
+    // }
 }
 exports.checkLabeledDataFormat = checkLabeledDataFormat;
 
