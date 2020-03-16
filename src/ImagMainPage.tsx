@@ -1,37 +1,15 @@
 import {LabeledImage} from './LabeledImage';
 import React, {useEffect, useState} from 'react';
-import { userInfo } from 'os';
-import {Row, Col,Icon, Button, Input, message,Select, InputNumber} from 'antd';
-import { getData } from './utils';
-import { serverUrl, types, fabricTypes, LetterToTypes} from './config';
+import {Row, Col,Icon, Button,message,} from 'antd';
+import { getData, getTinyPath } from './utils';
+import { serverUrl, fabricTypes, BoundingBox,labelBox,PolygonBox} from './config';
 import { async, reject } from 'q';
 import App from './App';
 import {changeUrl} from './Sider';
-import {_history} from "./config";
+import {_history,flawTypes} from "./config";
 import {postData} from "./utils";
-import { number } from 'prop-types';
-import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 
 
-const {Option} = Select;
-
-interface D2 {
-    x: number,
-    y: number
-}
-
-interface PBox{
-    points:Array<D2>,
-    annotation: string,
-}
-
-interface BBox{
-    x: number;
-    y: number;
-    h: number;
-    w: number;
-    annotation: string;   
-}
 
 interface FileId{
     fileId:number
@@ -42,7 +20,7 @@ interface jsonProps{
     url: string,
     labeledUser: string,
     labeledDate: string,
-    defaultBoxes: Array<BBox | PBox>,
+    defaultBoxes: Array<BoundingBox|labelBox|PolygonBox>,
     defaultSceneType: string|undefined;
 }
 interface Label{
@@ -53,14 +31,13 @@ interface Label{
 }
 
 
-const rightStart = [0, 42.4, 86.1, 129.6]
+const rightStart = [10.5, 52.2, 95.25, 137.5]
 
-const rightEnd = [50.4, 93.0, 135.1, 179.4]
+const rightEnd = [58.5, 100, 143.5, 185.5]
 
-const leftStart = [179.4-rightEnd[0],179.4-rightEnd[1],179.4-rightEnd[2],179.4-rightEnd[3]]
-const leftEnd = [179.4-rightStart[0],179.4-rightStart[1],179.4-rightStart[2],179.4-rightStart[3]]
+const leftStart = [185.5-rightEnd[0],185.5-rightEnd[1],185.5-rightEnd[2],185.5-rightEnd[3]]
+const leftEnd = [185.5-rightStart[0],185.5-rightStart[1],185.5-rightStart[2],185.5-rightStart[3]]
 
-const {Search} = Input;
 
 var loadState = false;
 
@@ -74,8 +51,9 @@ export const ImageMainPage:React.FC = function(){
     const [style_3, setStyle_3] = useState<boolean>(true);
     const [style_4, setStyle_4] = useState<boolean>(true);
     const [isLabelLeft, setIsLabelLeft] = useState<boolean>(true);
+    const [clickLeft, setClickLeft] = useState<boolean>(true);
     const [label, setLabel] = useState<Label>({    
-        type: "A",
+        type: flawTypes[0],
         distance: 0,
         naturalX: 0,
         y: 0});
@@ -83,8 +61,6 @@ export const ImageMainPage:React.FC = function(){
     const [priorX, setPriorX] = useState([]);
     // @ts-ignore
     const [predictList, setPredictList] = useState<[string]>([]);
-    // @ts-ignore
-    const [imageUrls, setImageUrls] = useState<[String]>([]);
     // @ts-ignore
     const [jsonDataList, setJsonDataList] = useState<[jsonProps]>([
     {
@@ -172,7 +148,6 @@ export const ImageMainPage:React.FC = function(){
         defaultSceneType: undefined,
     }]);
     
-    
     const [imageIndex, setImageIndex] = useState(-10000);
 
 
@@ -192,21 +167,31 @@ export const ImageMainPage:React.FC = function(){
                 throw 'fail';
             }
             else{
-                let jsonData = data.map(function(item:jsonProps){
+                message.loading({content:"更新中",key:"update"});
+                let jsonData =  await data.map(function(item:jsonProps){
                     let _labeledUser:string = item.labeledUser;
                     let _labeledDate:string = item.labeledDate;
                     let _defaultBoxes = item.defaultBoxes;
                     let _defaultSceneType: string|undefined = item.defaultSceneType;
-                    if (typeof  _defaultSceneType == 'string'&& fabricTypes.indexOf(_defaultSceneType) == -1){
+                    let _url = "";
+                    if (typeof  _defaultSceneType === 'string'&& fabricTypes.indexOf(_defaultSceneType) == -1){
                         _defaultSceneType = undefined;
                     }
-                    for (let box of _defaultBoxes) {
-                        if (types.indexOf(box.annotation) === -1 && box.annotation!='label') {
-                            box.annotation = '未知';
+                    if(_defaultBoxes){
+                        for (let box of _defaultBoxes) {
+                            if (flawTypes.indexOf(box.annotation) === -1 && box.annotation!=='label') {
+                                box.annotation = '未知';
+                            }
                         }
                     }
+                    if(item.url === ""){
+                        _url = serverUrl + "none.jpg";
+                    }
+                    else{
+                        _url = serverUrl + item.url;
+                    }
                     return {
-                        url: serverUrl + item.url,
+                        url: _url,
                         labeledUser: _labeledUser,
                         labeledDate: _labeledDate,
                         defaultBoxes: _defaultBoxes,
@@ -214,7 +199,7 @@ export const ImageMainPage:React.FC = function(){
                     }   
                 })
                 setJsonDataList(jsonData);
-                message.success("更新成功");
+                message.success({content:"更新成功",key:"update"});
             }
         });
     };
@@ -249,8 +234,12 @@ export const ImageMainPage:React.FC = function(){
         }
     },[location,predictList]);
 
+    
+    // useEffect(()=>{
+    //     message.success(JSON.stringify(jsonDataList))
+    // },[jsonDataList]);
     useEffect(()=>{
-        if(imageIndex != -10000){
+        if(imageIndex !== -10000){
             const dataChange = async()=>{
                 loadState = true;
                 getJsonData().then(res=>{
@@ -260,11 +249,11 @@ export const ImageMainPage:React.FC = function(){
             dataChange();
             styleInit();
         }
-    },[imageIndex]);
+    },[imageIndex,showIndex]);
 
 
     useEffect(()=>{
-        if(fileName!= "")
+        if(fileName !== "")
         getPredicts();
     },[fileName]);
 
@@ -277,7 +266,7 @@ export const ImageMainPage:React.FC = function(){
         }).then((data:FileId)=>{
             if(data.fileId !== undefined)
                 setFileId(data.fileId);
-            if(data.fileId == -1){
+            if(data.fileId === -1){
                 setTimeout(()=>{
                     _history.push('/fileLoader');
                     changeUrl("/fileLoader");
@@ -321,16 +310,19 @@ export const ImageMainPage:React.FC = function(){
     const returnBack = async ()=>{
         // TODO
         setShowIndex(-1);
+
+        //window.location.reload(true);
     }
 
     const app = (showIndex!==-1)?(
         <App url={jsonDataList[showIndex].url}
         labeledUser={jsonDataList[showIndex].labeledUser}
         labeledDate={jsonDataList[showIndex].labeledDate}
-        defaultType={LetterToTypes[label.type]}
+        defaultType={label.type}
         defaultBoxes={jsonDataList[showIndex].defaultBoxes}
         defaultSceneType={jsonDataList[showIndex].defaultSceneType}
         returnBack = {returnBack}
+        setLeft={()=>{setIsLabelLeft(clickLeft)}}
         setLabelBack = {(label:Label)=>{setLabel(label)}}
         priorNaturalX = {showIndex>=4&&showIndex<=7?priorX[7-showIndex]:0}
        //priorNaturalX={priorX[0]}
@@ -371,6 +363,7 @@ export const ImageMainPage:React.FC = function(){
         let naturalX = label.naturalX
         let XList = [0,0,0,0]
         if(isLabelLeft){
+            naturalX += leftStart[3];
             if(naturalX>leftStart[0] && naturalX<leftEnd[0]){
                 setStyle_1(false);
                 XList[0]=naturalX-leftStart[0];
@@ -389,6 +382,7 @@ export const ImageMainPage:React.FC = function(){
             }
         }
         else{
+            naturalX += rightStart[0];
             if(naturalX>rightStart[0] && naturalX<rightEnd[0]){
                 setStyle_1(false);
                 XList[0]=rightEnd[0] - naturalX;
@@ -430,16 +424,16 @@ export const ImageMainPage:React.FC = function(){
                 </Row>
                 <Row style={{margin:10}}>
                     <Col  span={4}>
-                        {"瑕疵类型： " + LetterToTypes[label.type]}
+                        {"瑕疵类型： " + label.type}
                     </Col>
                     <Col span={4}>
-                        {"贴标所在边: " + isLabelLeft?"左":"右"}
+                        贴标所在边: {isLabelLeft?"左":"右"}
                     </Col>
                     <Col span={4}>
                         {"瑕疵距离: " + label.distance}
                     </Col>
                     <Col span={4}>
-                        贴标所在高度： {label.y}
+                        贴标所在高度： {label.y} 
                     </Col>
                     <Col span={4}>
                     <Button type="primary" disabled={loadState} onClick={onSet}>设置</Button>
@@ -473,7 +467,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage
                         style ={style_normal} 
-                        url = {jsonDataList[0].url}
+                        url = {getTinyPath(jsonDataList[0].url)}
                         bboxes = {jsonDataList[0].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(0)}}
@@ -482,7 +476,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[1].url}
+                        url = {getTinyPath(jsonDataList[1].url)}
                         bboxes = {jsonDataList[1].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(1)}}
@@ -491,7 +485,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[2].url}
+                        url = {getTinyPath(jsonDataList[2].url)}
                         bboxes = {jsonDataList[2].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(2)}}
@@ -500,7 +494,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[3].url}
+                        url = {getTinyPath(jsonDataList[3].url)}
                         bboxes = {jsonDataList[3].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(3)}}
@@ -511,17 +505,17 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_4?style_normal:style_selected} 
-                        url = {jsonDataList[4].url}
+                        url = {getTinyPath(jsonDataList[4].url)}
                         bboxes = {jsonDataList[4].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(4);
-                        setIsLabelLeft(true)}}
+                        setClickLeft(true)}}
                         />
                     </Col>
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_3?style_normal:style_selected} 
-                        url = {jsonDataList[5].url}
+                        url = {getTinyPath(jsonDataList[5].url)}
                         bboxes = {jsonDataList[5].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(5)}}
@@ -530,7 +524,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_2?style_normal:style_selected}
-                        url = {jsonDataList[6].url}
+                        url = {getTinyPath(jsonDataList[6].url)}
                         bboxes = {jsonDataList[6].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(6)}}
@@ -539,11 +533,11 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_1?style_normal:style_selected} 
-                        url = {jsonDataList[7].url}
+                        url = {getTinyPath(jsonDataList[7].url)}
                         bboxes = {jsonDataList[7].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(7)
-                        setIsLabelLeft(false)}}
+                        setClickLeft(false)}}
                         />
                     </Col>
                 </Row> 
@@ -551,7 +545,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[8].url}
+                        url = {getTinyPath(jsonDataList[8].url)}
                         bboxes = {jsonDataList[8].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(8)}}
@@ -560,7 +554,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[9].url}
+                        url = {getTinyPath(jsonDataList[9].url)}
                         bboxes = {jsonDataList[9].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(9)}}
@@ -569,7 +563,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[10].url}
+                        url = {getTinyPath(jsonDataList[10].url)}
                         bboxes = {jsonDataList[10].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(10)}}
@@ -578,7 +572,7 @@ export const ImageMainPage:React.FC = function(){
                     <Col span={5}>
                         <LabeledImage 
                         style ={style_normal} 
-                        url = {jsonDataList[11].url}
+                        url = {getTinyPath(jsonDataList[11].url)}
                         bboxes = {jsonDataList[11].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(11)}}

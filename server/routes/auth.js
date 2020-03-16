@@ -110,7 +110,7 @@ router.post('/setState', async(req, res) => {
         });
     }
     else{
-        User.findOneAndUpdate({objectname}, {$set:{state}}, function(err, doc){
+        User.findOneAndUpdate({username:objectname}, {$set:{state}}, function(err, doc){
             if(err){
                 res.status(412)
                     .json({

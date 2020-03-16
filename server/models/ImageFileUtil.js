@@ -18,7 +18,11 @@ async function fileSetUp(){
         let filePath = path.join(`./${config.staticDir}`, urlPath);
         let configPath =  `${filePath}/${config.ConfigFileName}`;
         const stat = await lstat(path.join(`./${config.staticDir}`, urlPath));
+        let jsonPath =  `${filePath}/detect_label.json`;
         if (!stat.isDirectory()) {
+            continue;
+        }
+        if (!fs.existsSync(jsonPath)) {
             continue;
         }
         var jsonData = {
@@ -59,7 +63,8 @@ async function fileSetUp(){
 
 
 async function fileWrite(file){
-    console.log(file.fileName)
+    if(!file.fileName)
+        return;
     let filePath = path.join(`./${config.staticDir}`, `${String(file.fileName)}`);
     let configPath =  `${filePath}/${config.ConfigFileName}`;
     var jsonData = {

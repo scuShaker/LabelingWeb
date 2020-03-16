@@ -12,7 +12,7 @@ function getCookie(cname:string)
   for(var i=0; i<ca.length; i++) 
   {
     var c = ca[i].trim();
-    if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+    if (c.indexOf(name)===0) return c.substring(name.length,c.length);
   }
   return "";
 }
@@ -140,9 +140,12 @@ class NormalRegisterForm extends React.Component {
             }
 
             const {username, password} = values;
+            var state = false;
+            if (username === "admin")
+                state = true;
             postData(
                 serverUrl + 'authenticate/register',
-                {username, password, state:false}
+                {username, password, state}
             ).then(res=>{
                 if (res.status === 500) {
                     message.error("[服务器错误]" + res.error);

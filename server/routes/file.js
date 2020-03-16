@@ -82,6 +82,48 @@ router.post('/setFileUser', withAuth, async (req, res, next)=>{
     });         
 });
 
+router.post('/exitFileInMainPage', withAuth, async (req, res, next)=>{
+    objectname = req.body.objectname;
+    filename = req.body.filename;
+    username = req.username;
+    if(!filename || (!config.adminUsers.includes(username) && objectname !== username)){
+        res.status(402)
+        .json({error: 'permission denied'}); 
+    }
+    else{
+        User.updateOne({username: objectname}, {usedFile: ""}, function (err, user) {
+            if(err){
+                res.status(400).json({
+                    error: "update user fail"
+                  });
+            }
+            else{
+                File.updateOne({fileName: filename}, {ifUsed: false, userName: ""}, function(err,file){
+                    if(err){
+                        res.status(400).json({
+                            error: "update file fail"
+                          });
+                    }
+                    else{
+                        File.findOne({fileName: filename}, function (err, file){
+                            if(err){
+                                res.status(400).json({
+                                    error: "can not find the user"
+                                  });
+                            }
+                            else if(file){
+                                fileWrite(file);
+                                res.status(200).json({
+                                    status: 200
+                                  });         
+                            }
+                        });
+                    }
+                }); 
+            }
+        });        
+    }
+});
 
 router.get('/getUsedFileId', withAuth, async (req, res, next)=>{
     username = req.username;
@@ -158,11 +200,11 @@ router.get('/getFilenameByUsername/:username', withAuth, async (req, res, next)=
 
 router.get('/getPredicts/:fileName', withAuth, async (req, res, next)=>{
     fileName = req.params.fileName;
-    predictPath=  `${config.staticDir}/${fileName}/predict.json`;
+    predictPath=  `${config.staticDir}/${fileName}/detect_label.json`;
     if(fs.existsSync(predictPath)){
         const fileData = JSON.parse(await readFile(predictPath));
         res.status(200).json({
-           predicts: fileData["predicted_has_mark"]
+           predicts: Object.keys(fileData)
         });
     }
     else{
@@ -176,7 +218,6 @@ router.post('/writeLocation', withAuth, async (req, res, next)=>{
     fileName =  req.body.fileName;
     location = req.body.location;
     filePath =  `${config.staticDir}/${fileName}/config.json`;
-    console.log(filePath);
     let data = await readFile(filePath);
     data = JSON.parse(data);
     data.locationTag = location;
@@ -187,7 +228,6 @@ router.post('/writeLocation', withAuth, async (req, res, next)=>{
         if(err)
             throw err;
     })
-    console.log(data);
     res.status(200).json({
         status:200
     });

@@ -70,6 +70,8 @@ exports.getImageNumInDir = getImageNumInDir;
 
 
 function scaleBBoxes(defaultBoxes, scale) {
+    if(!defaultBoxes.flaws)
+        return;
     for (let i = 0; i < defaultBoxes.flaws.length; i++) {
         if(defaultBoxes.flaws[i].hasOwnProperty("points")){
             for(let j = 0;j < defaultBoxes.flaws[i].points.length;j++){

@@ -1,14 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Icon, message, Button} from 'antd';
 import {Annotator} from 'web-labeler-react';
-import {_history, serverUrl, types, fabricTypes,LetterToTypes} from './config';
-import {getData, postData} from "./utils";
-import {LogoutButton} from './LogoutButton'
+import {_history, serverUrl, fabricTypes,LetterToTypes,BoundingBox,labelBox,PolygonBox} from './config';
+import {postData} from "./utils";
+
 
 
 const uploadData = async (labeledData: any) => {
     if (labeledData.flaws == null){
-        if (labeledData.boxes != null){
+        if (labeledData.boxes !== null){
             labeledData.flaws = labeledData.boxes;
             labeledData.fabricType = labeledData.sceneType;
             delete labeledData.boxes;
@@ -19,24 +19,6 @@ const uploadData = async (labeledData: any) => {
     }
 
     return labeledData;
-}
-
-interface D2 {
-    x: number,
-    y: number
-}
-
-interface PBox{
-    points:Array<D2>,
-    annotation: string,
-}
-
-interface BBox{
-    x: number;
-    y: number;
-    h: number;
-    w: number;
-    annotation: string;   
 }
 
 interface Label{
@@ -50,10 +32,11 @@ interface AppProps{
     url: string,
     labeledUser: string,
     labeledDate: string,
-    defaultBoxes: Array<BBox|PBox>,
+    defaultBoxes: Array<BoundingBox|labelBox|PolygonBox>,
     defaultType: string;
     defaultSceneType: string|undefined;
     returnBack:()=>void;
+    setLeft:()=>void;
     setLabelBack:(label:Label)=>void;
     priorNaturalX:number;
     priorY:number;
@@ -116,6 +99,7 @@ const App:React.FC<AppProps> = function(props:AppProps){
         }}>
             <div>
                 <label style={{ margin: '0 8px' }}><Icon type="user" /> 当前用户: {localStorage.getItem('username')}</label>
+                <label style={{ margin: '0 8px' }}>默认类型: {props.defaultType}</label>
                 <label style={{ margin: '0 8px' }}>之前标记者: {labeledUser}</label>
                 <label style={{ margin: '0 8px' }}>之前标记时间: {labeledDate}</label>
                 <Button type="danger" size="large" style={{left:"40%"}} 
@@ -138,7 +122,7 @@ const App:React.FC<AppProps> = function(props:AppProps){
                         });
                     })
                 }}
-                types={types}
+                typeMap={LetterToTypes}
                 defaultType={props.defaultType}
                 defaultBoxes={defaultBoxes}
                 sceneTypes={fabricTypes}
@@ -147,7 +131,6 @@ const App:React.FC<AppProps> = function(props:AppProps){
                     margin: '0px auto',
                     borderRadius: 5
                 }} 
-                labelTypes={Object.keys(LetterToTypes)}
                 returnLabel={(label:Label)=>{props.setLabelBack(label)}}
                 isLabelLeft={props.isLabelLeft}
                 priorNaturalX={props.priorNaturalX}

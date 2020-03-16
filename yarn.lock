@@ -11131,13 +11131,22 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   dependencies:
     minimalistic-assert "^1.0.0"
 
-web-labeler-react@^1.0.16:
-  version "1.0.16"
-  resolved "https://registry.yarnpkg.com/web-labeler-react/-/web-labeler-react-1.0.16.tgz#ff74f8be245d14aedae80e44f981cdc6e90c2786"
-  integrity sha512-oFz08Zqz8LLQYlv0Ffy7YtRJS3ZVpTAUW36OYgtXPZn/QjALsk5nJJHYABnLYfS082tzQ4yfeN/LLDnZrXnRfw==
+web-labeler-react@^1.0.22:
+  version "1.0.22"
+  resolved "https://registry.yarnpkg.com/web-labeler-react/-/web-labeler-react-1.0.22.tgz#5b2b3d6a2be2c7dee099a43c0fadb8dad3abc296"
+  integrity sha512-q/yRtgSlQ5jtx2qjAhzuP6+ekvfgpbD9rQs0rnK04suOX9DdykFzW3HbBzZxA4lRwzFUEqlsfJYdo1KR03eMqQ==
   dependencies:
     babel-plugin-import "^1.12.0"
     babel-preset-env "^1.7.0"
+
+web-labeler-react@^1.0.24:
+  version "1.0.24"
+  resolved "https://registry.yarnpkg.com/web-labeler-react/-/web-labeler-react-1.0.24.tgz#314e7216fbfd588706ead15e00623a0aae515bbd"
+  integrity sha512-gxQU61EWG8AFh8N6CxUXA6hDq6DexLxVVPc7YOhlUFVhdJvLtgtSOcCi8zRMpmIiQMqXJhR0g1rw/AxJYGqURg==
+  dependencies:
+    babel-plugin-import "^1.12.0"
+    babel-preset-env "^1.7.0"
+    web-labeler-react "^1.0.22"
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

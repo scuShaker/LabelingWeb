@@ -1,6 +1,6 @@
 var config = {};
 config.dataBaseDir = '../data/';;
-config.mongoDBUri = 'mongodb://localhost/labeler';
+config.mongoDBUri = 'mongodb://localhost/labelTest1';
 config.refreshIntervalInMS = 1000 * 30;
 if (process.env.NODE_ENV === 'test') {
     config.dataBaseDir = './__test__/data/';

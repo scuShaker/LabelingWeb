@@ -1,8 +1,8 @@
-import {Col, Row, Statistic, Table, Button, Switch, message} from 'antd';
-import {serverUrl} from './config';
+import {Col, Row, Table, Button, Switch, message} from 'antd';
+import {serverUrl,BoundingBox,labelBox,PolygonBox} from './config';
 import React, {useEffect, useState} from 'react';
 import {LogoutButton} from './LogoutButton'
-import {getData, postData} from "./utils";
+import {getData, postData,getTinyPath} from "./utils";
 import {LabeledImage} from './LabeledImage';
 import {Annotator} from 'web-labeler-react';
 import './Login.css';
@@ -13,22 +13,7 @@ interface LabeledNumRow {
     username: String;
     labeledNum: number;
 }
-interface D2 {
-    x: number,
-    y: number
-}
 
-interface PBox{
-    points:Array<D2>,
-    annotation: string,
-}
-interface BBox {
-    x: number;
-    y: number;
-    h: number;
-    w: number;
-    annotation: string;
-}
 
 interface RawLabelRow {
     imagePath: string;
@@ -38,7 +23,7 @@ interface RawLabelRow {
 
 interface LabelRow {
     url: string;
-    bboxes: Array<BBox| PBox>;
+    bboxes: Array<BoundingBox| labelBox|PolygonBox>;
     labelDate: string;
 }
 
@@ -57,7 +42,7 @@ export const UserMainPage: React.FC = function() {
     const getImageData = (username:string|null)=>{
         const checkLabeledImagesUrl = serverUrl + 'statistic/labeled-images/' + username;
         getData(checkLabeledImagesUrl).then(res=>{
-            if(res.status==200){
+            if(res.status===200){
                 return res.json();
             }
             else{
@@ -82,7 +67,15 @@ export const UserMainPage: React.FC = function() {
             setUserLabels(data);
         });
     };
-
+    const exitFile = (objectname:string, filename:string)=>{
+        postData(serverUrl + 'file/exitFileInMainPage',
+        {username:localStorage.getItem('username'), objectname, filename}).then(res=>{
+            if(res.status!==200){
+                message.error("权限不足")
+            }
+            window.location.reload(true);
+        });       
+    }
 
     const columns: any = [
         {
@@ -113,7 +106,7 @@ export const UserMainPage: React.FC = function() {
                     let newState = checked;
                     postData(serverUrl + 'authenticate/setState',
                     {username:localStorage.getItem('username'), objectname: record.username, state:newState}).then(res=>{
-                        if(res.status==412){
+                        if(res.status===412){
                             message.error("你不是管理员用户或者你不能修改管理员的登录权限")
                         }
                     });
@@ -129,6 +122,15 @@ export const UserMainPage: React.FC = function() {
                     {record.filename}
                 </div>
             )              
+        },
+        {
+            title: '退出文件',
+            key: 'checkOut',
+            render:(record: any)=>(
+                <Button type="primary" onClick={()=>{
+                    exitFile(record.username, record.filename);
+                 }}>退出文件</Button>
+            )
         }
     ];
 
@@ -141,13 +143,13 @@ export const UserMainPage: React.FC = function() {
         getImageData(localStorage.getItem('username'));
     }, []);
 
-    const UsersLabeledNumTable = usersLabeledNum.length === 0? undefined: (
+    const UsersLabeledNumTable = (usersLabeledNum && usersLabeledNum.length !== 0)? (
         <Table columns={columns} dataSource={usersLabeledNum} rowKey={'username'}/>
-    );
+    ):undefined;
 
     const annotator = (!!showUrl)?(
         <Annotator imageUrl={showUrl} height={800} width={800}
-                   asyncUpload={async ()=>{}} types={[]} defaultBoxes={showBBoxes}
+                   asyncUpload={async ()=>{}} typeMap={{}} defaultBoxes={showBBoxes}
                    disableAnnotation={true}
                    style={{
                        display: (!!showUrl)? 'block':'none',
@@ -157,7 +159,6 @@ export const UserMainPage: React.FC = function() {
                        transform: 'translate(-50%, -50%)',
                        zIndex: 20
                    }}
-                   labelTypes={[]}
         />) : undefined;
 
     return (
@@ -189,7 +190,7 @@ export const UserMainPage: React.FC = function() {
                     if(row.url !== undefined)
                         return(
                     <LabeledImage
-                        url={serverUrl + row.url}
+                        url={getTinyPath(serverUrl + row.url)}
                         bboxes={row.bboxes}
                         size={100}
                         key={row.url}

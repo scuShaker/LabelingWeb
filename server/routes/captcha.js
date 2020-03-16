@@ -10,7 +10,6 @@ const router = express.Router();
 
 
 router.get('/getCaptcha', async (req, res, next)=>{
-    console.log(11111)
     var captcha = svgCaptcha.create({  
         // 翻转  
         inverse: false,  

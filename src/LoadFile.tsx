@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Button, message } from 'antd';
+import { Button, message, Row, Col} from 'antd';
 import {serverUrl} from './config';
 import { getData } from './utils';
-import { relative } from 'path';
 import {postData} from "./utils";
-import { any } from 'prop-types';
 import {_history} from "./config";
 import {changeUrl} from "./Sider";
 import { reject } from 'q';
@@ -19,13 +17,12 @@ interface ImageFile{
 
 
   export const FileRadio: React.FC = function() {
-        const [IdValue, setIdValue] = useState(0);
         // @ts-ignore
         const [fileList, setFileList] = useState<[ImageFile]>([]);
 
         useEffect(()=>{
             getData(serverUrl + 'file/getUsedFileId').then(res=>{
-                if(res.status == 200)
+                if(res.status === 200)
                   return res.json(); 
                 else
                   throw 'fail';
@@ -46,24 +43,16 @@ interface ImageFile{
             })
         }, []);
         
-      const radioStyle = {
-        display: 'block',
-        height: '30px',
-        lineHeight: '30px',
-      };
 
-      const onChange = (e: any)=>{
-        setIdValue(e.target.value)
-      };
 
-    const onClick = (e: any)=>{
+    const onClick = (id: number,name:string)=>{
         const username = localStorage.getItem('username');
-        postData(serverUrl + 'file/setUserFile',{filename: fileList[IdValue].fileName}).then(res=>{
+        postData(serverUrl + 'file/setUserFile',{filename: name}).then(res=>{
           if(res.status === 400){
               message.error("出现错误");
           }
           else if(res.status === 200){
-              postData(serverUrl + 'file/setFileUser',{fileid: IdValue, username: username, ifused: true}).then(res=>{
+              postData(serverUrl + 'file/setFileUser',{fileid: id, username: username, ifused: true}).then(res=>{
                   if(res.status === 400){
                       message.error("出现错误");
                   }
@@ -80,17 +69,35 @@ interface ImageFile{
 
       return (
         <div>
-          <Radio.Group defaultValue={0}>
-            {fileList.map(function(row: ImageFile){
-              return (
-                <Radio style={radioStyle} onChange={onChange} value={row.fileId} disabled={row.ifUsed}>
+          <Row style={{
+            position: 'relative',
+            display: 'flex',
+            flexWrap: 'wrap'
+          }} gutter={[80,32]}>
+          <Col >文件夹</Col>
+          <Col >操作按钮</Col>
+          <Col >占用者</Col>
+          </Row>
+
+          {fileList.map(function(row: ImageFile){
+            return (
+              <Row style={{
+                position: 'relative',
+                display: 'flex',
+                flexWrap: 'wrap'
+            }} gutter={[128,16]}>
+                <Col span={5}>
                 {row.fileName}
-                </Radio>
-              )
-            })}
-          </Radio.Group>
-          <br />
-          <Button type="primary" onClick={onClick}>选择</Button>
+                </Col>
+                <Col span={5}>
+                <Button type="primary" onClick={()=>{onClick(row.fileId,row.fileName)}} disabled={row.ifUsed}>选择</Button>
+                </Col>
+                <Col span={5}>
+                {row.userName}
+                </Col>
+              </Row>
+            )
+          })}
         </div>
       )    
 };

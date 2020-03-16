@@ -15,7 +15,7 @@ export const changeUrl = (url:string)=>{
 };
 export const MainSider: React.FC<Props> = function (props: Props) {
     const onSelect = (v: any) => {
-        if(v.key == "/fileLoader" || v.key == "/")
+        if(v.key === "/fileLoader" || v.key === "/")
              _history.push(varUrl);
         else 
              _history.push(v.key);

@@ -11,7 +11,9 @@ export function redirectToLogin(){
         _history.push('/login');
     }, 200);
 }
-
+export function getTinyPath(url:string){
+    return url.replace(/.jpeg/, '_tiny.jpg');
+}
 export async function postData(url = ``, data: any = {}) {
     data = {
         method: "POST",

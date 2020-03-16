@@ -86,14 +86,13 @@ router.get('/getJsonData/:fileName/:imageIndex', withAuth, async function(req, r
     fileName + '/2/' + (imageIndex+1).toString() + ".jpeg",
     fileName + '/1/' + (imageIndex+1).toString() + ".jpeg",
   ];
-  Promise.all(urls.map(async function(item){
-    var promiseItem = async (urlItem)=>{
-      imagePath = path.join(config.staticDir, urlItem);
-      const JsonPath = replaceSuffixWithJson(imagePath);
-      if (await exists(JsonPath)) {
+  var promiseItem = async (urlItem)=>{
+    imagePath = path.join(config.staticDir, urlItem);
+    const JsonPath = replaceSuffixWithJson(imagePath);
+    if (await exists(imagePath)){
+      if (await exists(JsonPath)){
         let data = await readFile(JsonPath);
         data = JSON.parse(data);
-        //console.log(imagePath);
         let defaultBoxes = await loadDefaultBBoxes(data, imagePath);
         let defaultSceneType = data.fabricType;
         let labeledUser = "";
@@ -120,8 +119,7 @@ router.get('/getJsonData/:fileName/:imageIndex', withAuth, async function(req, r
           defaultBoxes,
           defaultSceneType
         };
-      }
-      else{
+      }else{
         return{
           url: urlItem,
           labeledUser: "",
@@ -129,8 +127,19 @@ router.get('/getJsonData/:fileName/:imageIndex', withAuth, async function(req, r
           defaultBoxes: [],
           defaultSceneType: undefined,
         }
-      }  
-    };
+      }
+    }  
+    else{
+      return{
+        url: "",
+        labeledUser: "",
+        labeledDate: "",
+        defaultBoxes: [],
+        defaultSceneType: undefined,
+      }
+    }  
+  };
+  Promise.all(urls.map(async function(item){
     return promiseItem(item).catch(function(err){
         return err;
     })

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components'
-import { message } from 'antd';
+import {BoundingBox,labelBox,PolygonBox} from './config';
 
 
 const MainPage = styled.div`
@@ -11,28 +11,11 @@ const MainPage = styled.div`
     z-index: 10;
 `;
 
-interface D2 {
-    x: number,
-    y: number
-}
-
-interface PBox{
-    points:Array<D2>,
-    annotation: string,
-}
-
-interface BBox {
-    x: number;
-    y: number;
-    h: number;
-    w: number;
-    annotation: string;
-}
 
 
 interface Props {
     url: string;
-    bboxes: Array<BBox|PBox>;
+    bboxes: Array<BoundingBox|labelBox|PolygonBox>;
     size: number;
     style?: object;
     onClick: (url:string)=>void;
@@ -74,7 +57,7 @@ export class LabeledImage extends React.Component {
             throw new Error("Cannot get context 2d");
         }
 
-        const box = this.getBBoxWrapper();
+        const box = this.getBBoxWrapper(this.props.bboxes);
         ctx.drawImage(
             this.imageElement,
             box.x, box.y,
@@ -83,7 +66,7 @@ export class LabeledImage extends React.Component {
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
         ctx.fillRect(0, 0, this.props.size, this.props.size);
-        this.setState({annotation: box.annotations.join(', ')});
+
     };
 
     componentDidMount(): void {
@@ -110,20 +93,26 @@ export class LabeledImage extends React.Component {
         });
     }
 
-    componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
+    componentWillReceiveProps(nextProps: Readonly<Props>): void {
         if (nextProps.url !== this.props.url) {
             this.initCanvas(nextProps.url);
+           // message.success(this.props.url +"   "+ nextProps.url )
         }
+        if (JSON.stringify(nextProps.bboxes) !== JSON.stringify(this.props.bboxes)) {
+            const newbox = this.getBBoxWrapper(nextProps.bboxes);
+           // message.success(JSON.stringify(this.props.bboxes) +"   "+ JSON.stringify(nextProps.bboxes))
+        }
+        //message.success(JSON.stringify(nextProps.url))
     }
 
-    getBBoxWrapper = () => {
+    getBBoxWrapper = (boxes:Array<BoundingBox|labelBox|PolygonBox>) => {
         let minX = Number.MAX_VALUE,
             minY = Number.MAX_VALUE,
             maxX = 0,
             maxY = 0,
             annotations: any = {};
 
-        for (let bbox of this.props.bboxes) {
+        for (let bbox of boxes) {
             /*
             minX = Math.min(bbox.x, minX);
             minY = Math.min(bbox.y, minY);
@@ -147,7 +136,7 @@ export class LabeledImage extends React.Component {
             maxY = this.imageElement.naturalHeight;
             //annotationArr.push('正常');
         }
-
+        this.setState({annotation: annotationArr.join(', ')});
         //const size = Math.max(this.props.size, Math.max(maxX - minX, maxY - minY));
 
         return {

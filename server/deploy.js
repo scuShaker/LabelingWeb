@@ -1,7 +1,7 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 const ignored = ['node_modules', '__test__'];
-const server = 'root@121.43.192.193:./labelingServer/object-detection-labeler/server/';
+const server = 'root@139.224.193.13:./labelingServer/object-detection-labeler/server/';
 
 fs.readdir('./', (err, names) => {
     for (let name of names) {
