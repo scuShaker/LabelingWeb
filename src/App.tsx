@@ -36,7 +36,8 @@ interface AppProps{
     defaultType: string;
     defaultSceneType: string|undefined;
     returnBack:()=>void;
-    setLeft:()=>void;
+    setHasLabel:(has:boolean)=>void;
+    sideLeft: boolean,
     setLabelBack:(label:Label)=>void;
     priorNaturalX:number;
     priorY:number;
@@ -122,10 +123,12 @@ const App:React.FC<AppProps> = function(props:AppProps){
                         });
                     })
                 }}
+                setHasLabel ={props.setHasLabel}
                 typeMap={LetterToTypes}
                 defaultType={props.defaultType}
                 defaultBoxes={defaultBoxes}
                 sceneTypes={fabricTypes}
+                sideLeft = {props.sideLeft}
                 defaultSceneType={defaultSceneType}
                 style={{
                     margin: '0px auto',

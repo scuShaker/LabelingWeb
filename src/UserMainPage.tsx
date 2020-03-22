@@ -64,7 +64,9 @@ export const UserMainPage: React.FC = function() {
             })
         }));
         }).then((data: Array<LabelRow>) => {
+            //message.info(data.length)
             setUserLabels(data);
+            //message.info(userLabels.length)
         });
     };
     const exitFile = (objectname:string, filename:string)=>{
@@ -189,6 +191,7 @@ export const UserMainPage: React.FC = function() {
                 {userLabels.map(function(row: LabelRow){
                     if(row.url !== undefined)
                         return(
+                    <div>
                     <LabeledImage
                         url={getTinyPath(serverUrl + row.url)}
                         bboxes={row.bboxes}
@@ -198,7 +201,9 @@ export const UserMainPage: React.FC = function() {
                             setShowBBoxes(row.bboxes);
                             setShowUrl(serverUrl + row.url);
                         }}
-                    />)
+                    />
+                    {row.url}
+                    </div>)
                     else 
                         return <div/>;
                 })}

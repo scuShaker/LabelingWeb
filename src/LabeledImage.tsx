@@ -58,6 +58,9 @@ export class LabeledImage extends React.Component {
         }
 
         const box = this.getBBoxWrapper(this.props.bboxes);
+        if(box === undefined){
+            return;
+        }
         ctx.drawImage(
             this.imageElement,
             box.x, box.y,
@@ -111,7 +114,9 @@ export class LabeledImage extends React.Component {
             maxX = 0,
             maxY = 0,
             annotations: any = {};
-
+        if(boxes === undefined){
+            return undefined;
+        } 
         for (let bbox of boxes) {
             /*
             minX = Math.min(bbox.x, minX);

@@ -51,7 +51,8 @@ export const ImageMainPage:React.FC = function(){
     const [style_3, setStyle_3] = useState<boolean>(true);
     const [style_4, setStyle_4] = useState<boolean>(true);
     const [isLabelLeft, setIsLabelLeft] = useState<boolean>(true);
-    const [clickLeft, setClickLeft] = useState<boolean>(true);
+    const [sideLeft, setSideLeft] = useState<boolean>(true);
+    const [hasLabel, setHasLabel] = useState<boolean>(false);
     const [label, setLabel] = useState<Label>({    
         type: flawTypes[0],
         distance: 0,
@@ -280,6 +281,7 @@ export const ImageMainPage:React.FC = function(){
     }, []);
 
     const onClickShow = (index:number)=>{
+        setHasLabel(false);
         setShowIndex(index);
         //setPriorX(0.0);
     }
@@ -310,7 +312,9 @@ export const ImageMainPage:React.FC = function(){
     const returnBack = async ()=>{
         // TODO
         setShowIndex(-1);
-
+        if(hasLabel){
+            setIsLabelLeft(sideLeft);
+        }
         //window.location.reload(true);
     }
 
@@ -322,7 +326,8 @@ export const ImageMainPage:React.FC = function(){
         defaultBoxes={jsonDataList[showIndex].defaultBoxes}
         defaultSceneType={jsonDataList[showIndex].defaultSceneType}
         returnBack = {returnBack}
-        setLeft={()=>{setIsLabelLeft(clickLeft)}}
+        sideLeft = {sideLeft}
+        setHasLabel = {setHasLabel}
         setLabelBack = {(label:Label)=>{setLabel(label)}}
         priorNaturalX = {showIndex>=4&&showIndex<=7?priorX[7-showIndex]:0}
        //priorNaturalX={priorX[0]}
@@ -509,7 +514,7 @@ export const ImageMainPage:React.FC = function(){
                         bboxes = {jsonDataList[4].defaultBoxes}
                         size = {150}
                         onClick = {()=>{onClickShow(4);
-                        setClickLeft(true)}}
+                        setSideLeft(true)}}
                         />
                     </Col>
                     <Col span={5}>
@@ -536,8 +541,8 @@ export const ImageMainPage:React.FC = function(){
                         url = {getTinyPath(jsonDataList[7].url)}
                         bboxes = {jsonDataList[7].defaultBoxes}
                         size = {150}
-                        onClick = {()=>{onClickShow(7)
-                        setClickLeft(false)}}
+                        onClick = {()=>{onClickShow(7);
+                            setSideLeft(false)}}
                         />
                     </Col>
                 </Row> 

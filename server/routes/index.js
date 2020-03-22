@@ -141,7 +141,14 @@ router.get('/getJsonData/:fileName/:imageIndex', withAuth, async function(req, r
   };
   Promise.all(urls.map(async function(item){
     return promiseItem(item).catch(function(err){
-        return err;
+      console.log(err)
+      return{
+        url: "",
+        labeledUser: "",
+        labeledDate: "",
+        defaultBoxes: [],
+        defaultSceneType: undefined,
+      };
     })
   })).then((data)=>{
     res.json(data);
