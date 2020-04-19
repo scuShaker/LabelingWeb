@@ -1,6 +1,6 @@
 var config = {};
 config.dataBaseDir = '../data/';;
-config.mongoDBUri = 'mongodb://localhost/labelTest1';
+config.mongoDBUri = 'mongodb://localhost/labelTest2';
 config.refreshIntervalInMS = 1000 * 30;
 if (process.env.NODE_ENV === 'test') {
     config.dataBaseDir = './__test__/data/';
@@ -15,6 +15,6 @@ config.allLabeledIamgePaths = [config.unlabeledImageDir, config.targetDir];
 config.ConfigFileName = 'config.json'
 
 config.maxImageSizeInByte = 4096 * 2000;
-config.adminUsers = ['admin','小马哥116'];
+config.adminUsers = ['admin'];
 
 module.exports = config;

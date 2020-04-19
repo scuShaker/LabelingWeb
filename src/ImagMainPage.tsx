@@ -10,7 +10,6 @@ import {_history,flawTypes} from "./config";
 import {postData} from "./utils";
 
 
-
 interface FileId{
     fileId:number
 }
@@ -299,6 +298,7 @@ export const ImageMainPage:React.FC = function(){
             }).catch(err=>{
                 if(err) throw err;
             });
+            window.location.reload(true);
         }
     }
 
