@@ -298,7 +298,7 @@ export const ImageMainPage:React.FC = function(){
             }).catch(err=>{
                 if(err) throw err;
             });
-            window.location.reload(true);
+            //window.location.reload(true);
         }
     }
 
